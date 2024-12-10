@@ -3,6 +3,11 @@ import { ApiErrors } from "../utils/apiErrors.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+// cookie options 
+const options = {
+    httpOnly: true,
+    secure: false
+   }
 // genrate tokens 
 const genrateTokens = async (userid) => {
     const user  = await User.findById(userid);
@@ -93,10 +98,7 @@ const loginUser = asyncHandler(async (req, res) => {
        if(!accessToken || !refreshToken){
         throw new ApiErrors(400, "no access and refresh token found ")
        }
-       const options = {
-        httpOnly: true,
-        secure: false
-       }
+      
        return res
        .status(400)
        .cookie("accessToken", accessToken, options)
@@ -110,4 +112,19 @@ const loginUser = asyncHandler(async (req, res) => {
     .status(400)
     .json(new ApiResponse(400, {message: "something went wron"}, "something went wrong"))
 })
-export {registerUser, loginUser}
+
+// user Logout
+const userLogout = asyncHandler(async (req, res) => {
+        const user = await User.findById(req?.user._id);
+        if (!user) {
+            throw new ApiErrors(400, "no user found")
+        }
+        user.refreshToken = ""
+        await user.save({validateBeforeSave: false})
+        return res
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(new ApiResponse(200,{}))
+
+}) 
+export {registerUser, userLogout, loginUser}
