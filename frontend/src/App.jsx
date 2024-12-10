@@ -1,9 +1,12 @@
 import { useState,useEffect } from 'react'
 import {io} from "socket.io-client"
+import axios from "axios"
 
-import './App.css'
+import {Routes,Route} from "react-router-dom"
+import Login from './components/Login';
 
 function App() {
+  
   const socket = io("http://localhost:5000")
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
@@ -17,9 +20,9 @@ function App() {
       })
   },[])
   return (
-    <>
-    
-    </>
+    <Routes>
+      <Route path='/login' element={<Login />}/>
+    </Routes>
   )
 }
 
