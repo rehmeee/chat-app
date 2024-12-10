@@ -7,7 +7,8 @@ const dbConnection = async()=>{
        const response = await mongoose.connect(`${process.env.DATABASE_URI}`);
        console.log(response.connection.host)
     } catch (error) {
-        throw new ApiErrors(200, "error while connecting to database")
+        console.log("reason", error.message)
+        throw new ApiErrors(400, "error while connecting to database")
     }
 }
 

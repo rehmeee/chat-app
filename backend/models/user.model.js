@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    refreshToken:{
+      type : String,
+      default : ""
+    }
   },
   { timestamps: true }
 );
@@ -28,6 +32,7 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
+  next()
 });
 userSchema.methods.checkPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
@@ -39,8 +44,10 @@ userSchema.methods.genrateAccessToken = function () {
       _id: this._id,
       username: this.username,
     },
-    ACCESS_TOKEN_SECRET_KEY,
-    process.env.ACCESS_TOKEN_EXPIRTY
+    process.env.ACCESS_TOKEN_SECRET_KEY,
+    {
+      expiresIn : process.env.ACCESS_TOKEN_EXPIRTY
+    }
   );
 };
 userSchema.methods.genrateRefreshToken = function () {
@@ -49,8 +56,10 @@ userSchema.methods.genrateRefreshToken = function () {
       _id: this._id,
       
     },
-    REFRESH_TOKEN_SECRET_KEY,
-    process.env.REFRESH_TOKEN_EXPIRTY
+    process.env.REFRESH_TOKEN_SECRET_KEY,
+   {
+    expiresIn:  process.env.REFRESH_TOKEN_EXPIRTY
+   }
   );
 };
 
