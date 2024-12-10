@@ -17,6 +17,8 @@ const registerUser = asyncHandler(async (req, res) => {
             throw new ApiErrors(200, "no user is created")
         }
         return res
-        .statusCode(400)
+        .status(400)
         .json(user)
 })
+
+export {registerUser}
