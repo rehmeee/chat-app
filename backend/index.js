@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
 import { dbConnection } from "./db/dbConnection.js";
+import {socketAuth} from "./middleware/socket.middleware.js"
 dotenv.config();
 
 const app = express();
@@ -41,14 +42,16 @@ dbConnection().then(() => {
   });
 });
 
-
+io.use(socketAuth)  
  // handle websockt connection 
 io.on("connection", (socket) => {
+  console.log(socket.user.username, "connected")
   socket.on("chat message", (msg) => {
     io.emit("chat message", msg);
   });
   console.log(" a socket is connected ", socket.id);
-});
+});  
+
 
 
 

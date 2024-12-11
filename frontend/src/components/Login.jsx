@@ -12,12 +12,13 @@ const Login = () => {
   const getCookie = (name)=>{
       const cookies = document.cookie.split(";")
       for(let cookie of cookies){
-        const[key,value] = cookie.split("=")
+        //console.log(cookie, "cookie in getCookie")
+        const[key,value] = cookie.trim().split("=")
         if(key === name){
           return value
         }
       }
-      return null;
+      
   }
   const handleLogin = (e) => {
     e.preventDefault();
@@ -43,10 +44,12 @@ const Login = () => {
           },
           withCredentials: true
         })
-        console.log(response)
+        //console.log(response)
         if(response.status === 200){
           localStorage.setItem("accessToken", getCookie("accessToken"))
           localStorage.setItem("refreshToken", getCookie("refreshToken"))
+          //console.log(document.cookie)
+          //console.log(getCookie("refreshToken"))
           navigate("/");
         }
       }
@@ -54,6 +57,7 @@ const Login = () => {
       loginuser()
    } catch (error) {
     console.log("this is error message",error.message)
+    alert(error.message)
    }
    
   };

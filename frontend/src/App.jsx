@@ -1,29 +1,65 @@
-import { useState,useEffect } from 'react'
-import {io} from "socket.io-client"
-import axios from "axios"
-
-import {Routes,Route} from "react-router-dom"
-import Login from './components/Login';
+import { useState, useEffect } from "react";
+import { io } from "socket.io-client";
 
 function App() {
-  
-  const socket = io("http://localhost:5000")
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
+  const [errormessage, setErrorMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  useEffect(()=>{
-      socket.emit("chat message", "hello mani boss");
-      socket.on("chat message", (msg)=>{
-        console.log(msg)
-      });
-      socket.on("dissconnect", ()=>{
-        console.log("a user is dissconnect")
-      })
-  },[])
-  return (
-    <Routes>
-      <Route path='/login' element={<Login />}/>
-    </Routes>
-  )
+  const accessToken = localStorage.getItem("accessToken");
+  const refreshToken = localStorage.getItem("refreshToken");
+
+  const socket = io("http://localhost:5000", {
+    reconnection: true,
+    auth: {
+      token: `${accessToken}`,
+    },
+  });
+
+  socket.on("connect", ()=>{
+    console.log("a user is connected", socket.id)
+  })
+
+  socket.on("connect_error",(error)=>{
+
+    console.error("conection error", error.message)
+    alert(error.message)
+    setErrorMessage(error.message)
+    socket.disconnect()
+  })
+  socket.on("chat message", (msg)=>{
+    setMessages([...messages, msg])
+  })
+  const handleSubmit = (e)=>{
+    e.preventDefault()
+    socket.emit("chat message", message);
+  }
+
+  return <>
+   <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <div style={{ margin: "20px 0" }}>
+        <input
+          type="text"
+          placeholder="Type something..."
+          value={message}
+          onChange={(e)=>setMessage(e.target.value)}
+          style={{ padding: "10px", width: "300px", borderRadius: "5px", border: "1px solid #ccc" }}
+        />
+      </div>
+      <button
+        onClick={handleSubmit}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Enter
+      </button>
+    </div>
+  </>;
 }
 
-export default App
+export default App;
