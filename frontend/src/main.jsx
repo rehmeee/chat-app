@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')).render(
   <Navbar/>
     <Routes>
       <Route path='/login' element={<Login/>}/>
-      <Route path='/' element={<App/>}/>
+      <Route path='*' element={<App/>}/>
       <Route path='/register' element={<Signup/>}/>
 
     </Routes>
