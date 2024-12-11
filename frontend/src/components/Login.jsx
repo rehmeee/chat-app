@@ -9,31 +9,52 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  const getCookie = (name)=>{
+      const cookies = document.cookie.split(";")
+      for(let cookie of cookies){
+        const[key,value] = cookie.split("=")
+        if(key === name){
+          return value
+        }
+      }
+      return null;
+  }
   const handleLogin = (e) => {
     e.preventDefault();
     if (username.trim() === "" || password.trim() === "") {
       alert("Please enter both username and password.");
       return;
     }
-    (async () => {
-        try {
-           const response= await axios.post(`${import.meta.env.VITE_LOCAL_HOST_LINK_LOGIN}`,{
-                username: username,
-                password : password
-            },{
-                Headers:{
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                withCredentials: true
-            })
-            if(response.status === "400"){
-                navigate("/")
-            }
-        } catch (error) {
-            console.log(error.message)
+    let type = "username"
+    if(username.includes("@"))
+    {
+      type= "email";
+    }
+    console.log(type, "type of text you entered")
+   try {
+      async function loginuser() {
+        const response = await axios.post(import.meta.env.VITE_LOCAL_HOST_LINK_LOGIN, {
+          username, 
+          type,
+          password
+        },{
+          headers:{
+            "Content-Type": "application/json"
+          },
+          withCredentials: true
+        })
+        console.log(response)
+        if(response.status === 200){
+          localStorage.setItem("accessToken", getCookie("accessToken"))
+          localStorage.setItem("refreshToken", getCookie("refreshToken"))
+          navigate("/");
         }
-    })();
-
+      }
+      
+      loginuser()
+   } catch (error) {
+    console.log("this is error message",error.message)
+   }
    
   };
 
@@ -47,14 +68,14 @@ const Login = () => {
               htmlFor="username"
               className="block text-gray-700 font-medium mb-2"
             >
-              Username
+              Username/email
             </label>
             <input
               type="text"
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              placeholder="Enter your username/email"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
