@@ -16,10 +16,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(
-  cors({
-    origin: process.env.ORIGIN,
-    allowedHeaders: true,
-    Credential: true,
+  cors({ origin: "http://localhost:5173",
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    preflightContinue: true
   })
 );
 // app.use()
@@ -41,6 +41,8 @@ dbConnection().then(() => {
   });
 });
 
+
+ // handle websockt connection 
 io.on("connection", (socket) => {
   socket.on("chat message", (msg) => {
     io.emit("chat message", msg);
@@ -48,6 +50,10 @@ io.on("connection", (socket) => {
   console.log(" a socket is connected ", socket.id);
 });
 
+
+
+
+// routing 
 import userRouter from "./routes/user.routes.js";
 import cookieParser from "cookie-parser";
 

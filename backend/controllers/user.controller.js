@@ -5,7 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 // cookie options 
 const options = {
-    httpOnly: true,
+    httpOnly: false,
     secure: false
    }
 // genrate tokens 
@@ -100,7 +100,7 @@ const loginUser = asyncHandler(async (req, res) => {
        }
       
        return res
-       .status(400)
+       .status(200)
        .cookie("accessToken", accessToken, options)
        .cookie("refreshToken", refreshToken, options)
        .json(new ApiResponse(
