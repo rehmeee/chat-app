@@ -46,8 +46,8 @@ const Login = () => {
         })
         //console.log(response)
         if(response.status === 200){
-          localStorage.setItem("accessToken", getCookie("accessToken"))
-          localStorage.setItem("refreshToken", getCookie("refreshToken"))
+          sessionStorage.setItem("accessToken", getCookie("accessToken"))
+          sessionStorage.setItem("refreshToken", getCookie("refreshToken"))
           //console.log(document.cookie)
           //console.log(getCookie("refreshToken"))
           navigate("/");

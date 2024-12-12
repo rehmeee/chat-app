@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    rooms:[
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Rooms"
+      }
+    ],
     password: {
       type: String,
       required: true,

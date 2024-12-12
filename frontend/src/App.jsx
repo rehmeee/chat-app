@@ -1,65 +1,170 @@
-import { useState, useEffect } from "react";
-import { io } from "socket.io-client";
+
+import { useState, useEffect, useRef } from "react";
+import { io, Socket } from "socket.io-client";
 
 function App() {
   const [message, setMessage] = useState("");
+  const [randomUsers, setRandomUsers] = useState([]);
+  const [user, setUser] = useState({});
   const [errormessage, setErrorMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const accessToken = localStorage.getItem("accessToken");
-  const refreshToken = localStorage.getItem("refreshToken");
+  const [selectedRoom, setSelectedRoom] = useState(null); // For selected room/user
+  const [loading, setLoading] = useState(true);
+  const accessToken = sessionStorage.getItem("accessToken");
+  const socket = useRef(null)
+  useEffect(() => {
+    socket.current = io("http://localhost:5000", {
+      reconnection: true,
+      auth: {
+        token: `${accessToken}`,
+      },
+    });
 
-  const socket = io("http://localhost:5000", {
-    reconnection: true,
-    auth: {
-      token: `${accessToken}`,
-    },
-  });
+    // Socket listeners
+    socket.current.on("connect", () => {
+      console.log("A user is connected", socket.current.id);
+    });
 
-  socket.on("connect", ()=>{
-    console.log("a user is connected", socket.id)
-  })
+    socket.current.on("error", (data) => {
+      console.log(data.message);
+    });
 
-  socket.on("connect_error",(error)=>{
+    socket.current.on("connect_error", (error) => {
+      console.error("Connection error", error.message);
+      setErrorMessage(error.message);
+      socket.current.disconnect();
+    });
 
-    console.error("conection error", error.message)
-    alert(error.message)
-    setErrorMessage(error.message)
-    socket.disconnect()
-  })
-  socket.on("chat message", (msg)=>{
-    setMessages([...messages, msg])
-  })
-  const handleSubmit = (e)=>{
-    e.preventDefault()
-    socket.emit("chat message", message);
+    socket.current.on("userInfo", (info) => {
+      console.log("User info:", info);
+      setUser(info);
+
+      // Show random suggestions if no rooms
+      if (info.rooms.length === 0) {
+        socket.current.emit("want-suggestions", info._id);
+        socket.current.on("suggestions", (data) => {
+          console.log("Random Users:", data);
+          setRandomUsers(data);
+          setLoading(false);
+        });
+      } else {
+        setLoading(false);
+      }
+    });
+
+   
+
+    return () => {
+      socket.current.disconnect(); // Cleanup on unmount
+    };
+  }, [accessToken]);
+
+  const handleRoomClick = (room) => {
+      socket.current.emit()
+    setSelectedRoom(room);
+  };
+  const handleRoomClickForRandomUsers = (user)=>{
+    socket.current.emit("create-room", user, (response)=>{
+      if(response.success){
+        console.log("room created ")
+      }
+      else {
+        console.log("error while creating the room ")
+      }
+    })
+    socket.current.on("room-created" ,(data)=>{
+      console.log("ths is the room id that is created ", data.roomId)
+      setSelectedRoom(data.roomId);
+    })
   }
 
-  return <>
-   <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <div style={{ margin: "20px 0" }}>
-        <input
-          type="text"
-          placeholder="Type something..."
-          value={message}
-          onChange={(e)=>setMessage(e.target.value)}
-          style={{ padding: "10px", width: "300px", borderRadius: "5px", border: "1px solid #ccc" }}
-        />
+  const handleSendMessage = () => {
+    // Logic to send message to the selected room/user
+    if (selectedRoom) {
+      socket.current.emit("chat message", message, selectedRoom)
+      console.log("Sending message to:", selectedRoom);
+      console.log("this message is sending from ", user.username)
+    }
+    socket.current.on("chat message", (mesg, selectedRoom)=>{
+      console.log('mesg form the user ', mesg)
+      
+      console.log('message commin form the room ', selectedRoom)
+    })
+  };
+  
+
+  return (
+    <div className="flex h-screen font-sans">
+      {/* Sidebar */}
+      <div className="w-1/4 bg-gray-500 p-4 border-r">
+        <h2 className="text-lg font-bold mb-4">{user.username || "Loading..."}</h2>
+        <ul className="space-y-2">
+          {loading ? (
+            <p>Loading...</p>
+          ) : user.rooms && user.rooms.length > 0 ? (
+            user.rooms.map((room, index) => (
+              <li
+                key={index}
+                className={`p-2 cursor-pointer rounded ${
+                  selectedRoom === room ? "bg-gray-300" : "hover:bg-gray-200"
+                }`}
+                onClick={() => handleRoomClick(room)}
+              >
+                {room.name}
+              </li>
+            ))
+          ) : (
+            randomUsers.map((randomUser, index) => (
+              <li
+                key={index}
+                className={`p-2 cursor-pointer rounded ${
+                  selectedRoom === randomUser ? "bg-gray-300" : "hover:bg-gray-200"
+                }`}
+                onClick={() => handleRoomClickForRandomUsers(randomUser)}
+              >
+                {randomUser.fullName}
+              </li>
+            ))
+          )}
+        </ul>
       </div>
-      <button
-        onClick={handleSubmit}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#007bff",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Enter
-      </button>
+
+      {/* Chat Area */}
+      <div className="flex flex-col flex-1 p-4 bg-green-100">
+        {selectedRoom ? (
+          <>
+            <h3 className="text-xl text-black font-bold mb-4">
+              Chat with {selectedRoom.name || selectedRoom.fullName}
+            </h3>
+            <div className="flex-1 overflow-y-auto bg-orange-200 p-4 border rounded mb-4">
+              {messages.map((msg, index) => (
+                <p key={index} className="mb-2">
+                  {msg}
+                </p>
+              ))}
+            </div>
+            <div className="flex items-center">
+              <input
+                type="text"
+                placeholder="Type a message..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="flex-1 px-4 py-2 border rounded"
+              />
+              <button
+                onClick={handleSendMessage}
+                className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Send
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="text-gray-500">Select a room or user to start chatting.</p>
+        )}
+      </div>
     </div>
-  </>;
+  );
 }
 
 export default App;
