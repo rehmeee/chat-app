@@ -27,7 +27,7 @@ const genrateTokens = async (userid) => {
 const registerUser = asyncHandler(async (req, res) => {
         const {username, email, fullName, password} = req.body;
         if(!username || !email || !password){
-            throw new ApiErrors(200, "please provide email password and username correctly")
+            throw new ApiErrors(400, "please provide email password and username correctly")
         }
        const user =  await User.create({
             username, 
@@ -36,10 +36,10 @@ const registerUser = asyncHandler(async (req, res) => {
             password
         })
         if (!user) {
-            throw new ApiErrors(200, "no user is created")
+            throw new ApiErrors(400, "no user is created")
         }
         return res
-        .status(400)
+        .status(200)
         .json(user)
 })
 

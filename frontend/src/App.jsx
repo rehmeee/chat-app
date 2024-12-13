@@ -1,17 +1,17 @@
-
 import { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 
 function App() {
   const [message, setMessage] = useState("");
   const [randomUsers, setRandomUsers] = useState([]);
+  const [connectedRooms, setConnectedRooms] = useState([]);
   const [user, setUser] = useState({});
   const [errormessage, setErrorMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null); // For selected room/user
   const [loading, setLoading] = useState(true);
   const accessToken = sessionStorage.getItem("accessToken");
-  const socket = useRef(null)
+  const socket = useRef(null);
   useEffect(() => {
     socket.current = io("http://localhost:5000", {
       reconnection: true,
@@ -47,12 +47,34 @@ function App() {
           setRandomUsers(data);
           setLoading(false);
         });
+      }
+      if (info.rooms.length > 0) {
+        console.log("i am in ");
+
+        socket.current.emit("get-room-user", info.rooms);
+
+        socket.current.on("connected-users", (users) => {
+          console.log(users);
+          setConnectedRooms(users);
+        });
+        setLoading(false);
       } else {
         setLoading(false);
       }
     });
 
-   
+    socket.current.on("chat message", (content) => {
+      console.log(content);
+    });
+
+    socket.current.on("join-room", (data) => {
+      console.log(data);
+      socket.current.emit("join-room", { roomId: data.roomId }, (response) => {
+        if (response.success) {
+          console.log("joind the room ");
+        }
+      });
+    });
 
     return () => {
       socket.current.disconnect(); // Cleanup on unmount
@@ -60,49 +82,52 @@ function App() {
   }, [accessToken]);
 
   const handleRoomClick = (room) => {
-      socket.current.emit()
+    socket.current.emit("request-to-join-room", {
+      roomId: room.roomId,
+      targetUser: room._id,
+    });
     setSelectedRoom(room);
   };
-  const handleRoomClickForRandomUsers = (user)=>{
-    socket.current.emit("create-room", user, (response)=>{
-      if(response.success){
-        console.log("room created ")
-      }
-      else {
-        console.log("error while creating the room ")
-      }
-    })
-    socket.current.on("room-created" ,(data)=>{
-      console.log("ths is the room id that is created ", data.roomId)
-      setSelectedRoom(data.roomId);
-    })
-  }
 
-  const handleSendMessage = () => {
-    // Logic to send message to the selected room/user
-    if (selectedRoom) {
-      socket.current.emit("chat message", message, selectedRoom)
-      console.log("Sending message to:", selectedRoom);
-      console.log("this message is sending from ", user.username)
-    }
-    socket.current.on("chat message", (mesg, selectedRoom)=>{
-      console.log('mesg form the user ', mesg)
-      
-      console.log('message commin form the room ', selectedRoom)
-    })
+  // handle when user click on the random user from the suggestions
+  const handleRoomClickForRandomUsers = (user) => {
+    console.log(user);
+    socket.current.emit("create-room", user, (response) => {
+      if (response.success) {
+        console.log("room created ");
+      } else {
+        console.log("error while creating the room ");
+      }
+    });
+    socket.current.on("room-created", (data) => {
+      console.log("ths is the room id that is created ", data.roomId);
+      setSelectedRoom(data);
+    });
   };
-  
+
+  // handle the message sending
+  const handleSendMessage = () => {
+    if (selectedRoom) {
+      socket.current.emit("chat message", {
+        content: message,
+        room: selectedRoom.roomId,
+      });
+    }
+    setMessage("");
+  };
 
   return (
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
       <div className="w-1/4 bg-gray-500 p-4 border-r">
-        <h2 className="text-lg font-bold mb-4">{user.username || "Loading..."}</h2>
+        <h2 className="text-lg font-bold mb-4">
+          {user.username || "Loading..."}
+        </h2>
         <ul className="space-y-2">
           {loading ? (
             <p>Loading...</p>
-          ) : user.rooms && user.rooms.length > 0 ? (
-            user.rooms.map((room, index) => (
+          ) : connectedRooms ? (
+            connectedRooms.map((room, index) => (
               <li
                 key={index}
                 className={`p-2 cursor-pointer rounded ${
@@ -110,7 +135,7 @@ function App() {
                 }`}
                 onClick={() => handleRoomClick(room)}
               >
-                {room.name}
+                {room.fullName}
               </li>
             ))
           ) : (
@@ -118,7 +143,9 @@ function App() {
               <li
                 key={index}
                 className={`p-2 cursor-pointer rounded ${
-                  selectedRoom === randomUser ? "bg-gray-300" : "hover:bg-gray-200"
+                  selectedRoom === randomUser
+                    ? "bg-gray-300"
+                    : "hover:bg-gray-200"
                 }`}
                 onClick={() => handleRoomClickForRandomUsers(randomUser)}
               >
@@ -134,7 +161,7 @@ function App() {
         {selectedRoom ? (
           <>
             <h3 className="text-xl text-black font-bold mb-4">
-              Chat with {selectedRoom.name || selectedRoom.fullName}
+              Chat with {selectedRoom.fullName}
             </h3>
             <div className="flex-1 overflow-y-auto bg-orange-200 p-4 border rounded mb-4">
               {messages.map((msg, index) => (
@@ -160,7 +187,9 @@ function App() {
             </div>
           </>
         ) : (
-          <p className="text-gray-500">Select a room or user to start chatting.</p>
+          <p className="text-gray-500">
+            Select a room or user to start chatting.
+          </p>
         )}
       </div>
     </div>

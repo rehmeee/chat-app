@@ -37,7 +37,7 @@ const Signup = () => {
                 },
                 withCredentials: true
             })
-            if(response.status === "400"){
+            if(response.status === 200){
                 navigate("/login")
             }
         })();
