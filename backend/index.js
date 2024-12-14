@@ -49,10 +49,18 @@ dbConnection().then(() => {
 
 // this is is simple socket just for connection and to inform the connected users i am online
 io.use(socketAuth); // autentication for authurization
-io.on("connection", (socket) => {
-  io.emit("notification", `a user is connected ${socket.user.username}`);
-  // store for temprarely check if the user is online or not
-  users[socket.user._id] = socket.id;
+
+io.on("connection",  (socket) => {
+  
+  // add the user to online users
+ ( async () => {
+   const response = await addUserOnline(socket).then()
+   if(!response){
+     socket.emit("error", {message: "error while adding user online"})
+   }
+   console.log("response", response)
+    
+  })();
 
   // send the user info back
   socket.emit("userInfo", socket.user);
@@ -67,6 +75,8 @@ io.on("connection", (socket) => {
       socket.emit("error", { message: "error while fetching random users" });
     }
   });
+
+  // create room 
   socket.on("create-room", async (selcetedUser, callback) => {
     try {
       const currentUser = socket.user._id;
@@ -98,10 +108,12 @@ io.on("connection", (socket) => {
       callback({ success: false });
     }
   });
-  socket.on("chat message", ({ content, room }) => {
+
+  // chat message
+  socket.on("chat message", ({ content, room,sender }) => {
     // console.log(content, room)
     socket.join(room);
-    io.to(room).emit("chat message", content);
+    io.to(room).emit("chat message", {content, sender});
   });
 
   socket.on("get-room-user", async (rooms) => {
@@ -130,10 +142,20 @@ io.on("connection", (socket) => {
       sender: socket.user,
     });
   });
+  
+  // join room
   socket.on("join-room", ({ roomId }, callback) => {
     socket.join(roomId);
     callback({ success: true });
   });
+
+  // socket dissconnect 
+  socket.on("disconnect", async()=>{
+    await OnlineUsers.findOneAndDelete({
+      socketId: socket.id
+    })
+   
+  })
 });
 
 // routing
@@ -144,5 +166,7 @@ import { createRoom } from "./utils/roomCreation.js";
 import { Room } from "./models/room.model.js";
 import { User } from "./models/user.model.js";
 import { getConnectedUser } from "./utils/getUsersOfConnectedRooms.js";
+import { OnlineUsers } from "./models/onlineUser.model.js";
+import { addUserOnline } from "./utils/addingUserOnline.js";
 
 app.use("/user", userRouter);

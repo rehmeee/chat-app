@@ -19,11 +19,7 @@ function App() {
         token: `${accessToken}`,
       },
     });
-
-    // Socket listeners
-    socket.current.on("connect", () => {
-      console.log("A user is connected", socket.current.id);
-    });
+    
 
     socket.current.on("error", (data) => {
       console.log(data.message);
@@ -63,8 +59,8 @@ function App() {
       }
     });
 
-    socket.current.on("chat message", (content) => {
-      console.log(content);
+    socket.current.on("chat message", ({content, sender}) => {
+      console.log(content, sender);
     });
 
     socket.current.on("join-room", (data) => {
@@ -111,6 +107,7 @@ function App() {
       socket.current.emit("chat message", {
         content: message,
         room: selectedRoom.roomId,
+        sender: user
       });
     }
     setMessage("");
@@ -126,7 +123,7 @@ function App() {
         <ul className="space-y-2">
           {loading ? (
             <p>Loading...</p>
-          ) : connectedRooms ? (
+          ) : connectedRooms.length> 0 ? (
             connectedRooms.map((room, index) => (
               <li
                 key={index}
