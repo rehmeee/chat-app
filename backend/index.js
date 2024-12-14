@@ -50,17 +50,27 @@ dbConnection().then(() => {
 // this is is simple socket just for connection and to inform the connected users i am online
 io.use(socketAuth); // autentication for authurization
 
-io.on("connection",  (socket) => {
-  
+
+// when connection is established
+io.on("connection", (socket) => {
   // add the user to online users
- ( async () => {
-   const response = await addUserOnline(socket).then()
-   if(!response){
-     socket.emit("error", {message: "error while adding user online"})
-   }
-   console.log("response", response)
-    
+  (async () => {
+    const response = await addUserOnline(socket).then();
+    if (!response) {
+      socket.emit("error", { message: "error while adding user online" });
+    }
   })();
+  // remove the user from online users when he dissconnects
+  socket.on("disconnect", ()=>{
+    (async () => {
+      const response = await removeUserOnline(socket).then();
+    if (!response) {
+      socket.emit("error", { message: "error while removing user online" });
+    }
+    console.log(" socket is dissconnect", socket.id)
+    })();
+    
+  })
 
   // send the user info back
   socket.emit("userInfo", socket.user);
@@ -76,7 +86,7 @@ io.on("connection",  (socket) => {
     }
   });
 
-  // create room 
+  // create room
   socket.on("create-room", async (selcetedUser, callback) => {
     try {
       const currentUser = socket.user._id;
@@ -92,10 +102,11 @@ io.on("connection",  (socket) => {
       if (!roomExists) {
         const room = await createRoom(currentUser, targetUser, roomId).then();
         socket.join(room.id);
-        console.log("this is room", room);
+        
       } else {
+        console.log("target user is", targetUser)
         socket.join(roomId);
-        socket.to(users[targetUser]).socketsJoin(roomId);
+       
       }
       io.to(roomId).emit("room-created", {
         roomId,
@@ -110,10 +121,8 @@ io.on("connection",  (socket) => {
   });
 
   // chat message
-  socket.on("chat message", ({ content, room,sender }) => {
-    // console.log(content, room)
-    socket.join(room);
-    io.to(room).emit("chat message", {content, sender});
+  socket.on("chat message", ({ content, room, sender }) => {
+    io.to(room).emit("chat message", { content, sender });
   });
 
   socket.on("get-room-user", async (rooms) => {
@@ -131,32 +140,40 @@ io.on("connection",  (socket) => {
   });
 
   // join room
-  socket.on("request-to-join-room", ({ roomId, targetUser }) => {
-    console.log("in join room");
-    console.log(users);
-    console.log(roomId, targetUser);
+  socket.on("request-to-join-room", async({ roomId, targetUser }) => {
     socket.join(roomId);
-    io.to(users[targetUser]).emit("join-room", {
-      message: "join this room ",
-      roomId: roomId,
-      sender: socket.user,
-    });
-  });
+    const room = await OnlineUsers.findOne({
+      userId: targetUser
+    })
+   
+    const targetUserSocket = io.sockets.sockets.get(room.socketId)
+    console.log(targetUserSocket, "this is target socket")
+    if(targetUserSocket){
+      targetUserSocket.emit("room-joining-notification", {roomId, user: socket.user})
+    }
   
+    // room.socketId.join(roomId)
+    // io.to(users[targetUser]).emit("join-room", {
+    //   message: "join this room ",
+    //   roomId: roomId,
+    //   sender: socket.user,
+    // });
+  });
+
   // join room
   socket.on("join-room", ({ roomId }, callback) => {
     socket.join(roomId);
     callback({ success: true });
   });
 
-  // socket dissconnect 
-  socket.on("disconnect", async()=>{
+  // socket dissconnect
+  socket.on("disconnect", async () => {
     await OnlineUsers.findOneAndDelete({
-      socketId: socket.id
-    })
-   
-  })
+      socketId: socket.id,
+    });
+  });
 });
+
 
 // routing
 import userRouter from "./routes/user.routes.js";
@@ -167,6 +184,6 @@ import { Room } from "./models/room.model.js";
 import { User } from "./models/user.model.js";
 import { getConnectedUser } from "./utils/getUsersOfConnectedRooms.js";
 import { OnlineUsers } from "./models/onlineUser.model.js";
-import { addUserOnline } from "./utils/addingUserOnline.js";
+import { addUserOnline, removeUserOnline } from "./utils/addingUserOnline.js";
 
 app.use("/user", userRouter);

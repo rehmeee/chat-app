@@ -11,17 +11,18 @@ const createRoom = async (currentUser, targetUser, roomId) => {
     if (!room) {
       console.log("room is not created ");
       return null;
-    }
+    } 
     await User.findByIdAndUpdate(currentUser, {
-      rooms: room?._id,
+      $push:{rooms: room?._id}
     });
     await User.findByIdAndUpdate(targetUser, {
-      rooms: room?._id,
+      $push:{ rooms: room?._id}
+     
     });
-    return room;
+    return room;  
   } catch (error) {
     console.log(error.message);
     return null;
-  }
+  }   
 };
-export { createRoom };
+export { createRoom }; 

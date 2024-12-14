@@ -19,7 +19,6 @@ function App() {
         token: `${accessToken}`,
       },
     });
-    
 
     socket.current.on("error", (data) => {
       console.log(data.message);
@@ -31,6 +30,9 @@ function App() {
       socket.current.disconnect();
     });
 
+    socket.current.on("room-joining-notification", (data) => {
+      console.log("you joind this room ", data);
+    });
     socket.current.on("userInfo", (info) => {
       console.log("User info:", info);
       setUser(info);
@@ -59,8 +61,9 @@ function App() {
       }
     });
 
-    socket.current.on("chat message", ({content, sender}) => {
-      console.log(content, sender);
+    socket.current.on("chat message", (payload) => {
+      console.log(payload);
+      setMessages((prev) => [...prev, payload]);
     });
 
     socket.current.on("join-room", (data) => {
@@ -107,7 +110,7 @@ function App() {
       socket.current.emit("chat message", {
         content: message,
         room: selectedRoom.roomId,
-        sender: user
+        sender: user,
       });
     }
     setMessage("");
@@ -123,7 +126,7 @@ function App() {
         <ul className="space-y-2">
           {loading ? (
             <p>Loading...</p>
-          ) : connectedRooms.length> 0 ? (
+          ) : connectedRooms.length > 0 ? (
             connectedRooms.map((room, index) => (
               <li
                 key={index}
@@ -154,16 +157,45 @@ function App() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex flex-col flex-1 p-4 bg-green-100">
+      <div className="flex flex-col flex-1 p-4 bg-chatBg">
         {selectedRoom ? (
           <>
-            <h3 className="text-xl text-black font-bold mb-4">
-              Chat with {selectedRoom.fullName}
-            </h3>
-            <div className="flex-1 overflow-y-auto bg-orange-200 p-4 border rounded mb-4">
+            <div className=" flex flex-row my-2 p-2 rounded-xl place-items-center bg-chatScreenBg ">
+              <img
+                src={""}
+                alt=""
+                className="h-10 rounded-full w-10 bg-white"
+              />
+              <h3 className="text-xl text-userNameTextColor font-bold ml-2 ">
+                {selectedRoom.fullName}
+              </h3>
+            </div>
+
+            <div className="flex-1 overflow-y-auto bg-chatScreenBg p-4 border border-black  rounded-xl mb-4 butterfly  
+            ">
               {messages.map((msg, index) => (
-                <p key={index} className="mb-2">
-                  {msg}
+                <p
+                  key={index}
+                  className={`mb-2 text-textColor overflow-hidden${
+                    user.fullName === msg.sender.fullName
+                      ? " text-right"
+                      : " text-left"
+                  }`}
+                >
+                  {user.fullName === msg.sender.fullName ? (
+                    <p className="inline-block p-1 rounded-s-xl rounded-t-xl bg-mesgBg px-3">
+                      {" "}
+                      <span className="">{msg.content}</span>
+                    </p>
+                  ) : (
+                    <p className="inline-block p-1 rounded-e-xl rounded-b-xl bg-mesgBg pr-3 pl-0 overflow-hidden">
+                      {" "}
+                      <span className="bg-namebg p-2">
+                        {msg.sender.fullName.split(" ").shift(0)}
+                      </span>
+                      <span className="bg-spanbg ml-2">{msg.content}</span>
+                    </p>
+                  )}
                 </p>
               ))}
             </div>

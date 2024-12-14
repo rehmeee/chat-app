@@ -15,15 +15,15 @@ const getRandomUsers = async (userid) => {
               },
               {
                 $sample:{
-                    size:1
+                    size:5
                 }
               },
               {
-                $project:{
+                $project:{  
                     username: 1,
                     fullName : 1,
 
-                }
+                } 
               }
             ])
             //console.log(users)
