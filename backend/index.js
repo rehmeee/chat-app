@@ -131,16 +131,17 @@ io.on("connection", (socket) => {
   });
 
   // chat message
-  socket.on("chat message", async ({ content, room, sender }) => {
+  socket.on("chat message", async ({ content, roomId, roomDbId, sender }) => {
     // store the message in db
-    const response = await saveMessage(content, sender, room).then();
+    const response = await saveMessage(content, sender, roomDbId).then();
     if (!response) {
       socket.emit("error", { message: "Message Cannot be stored" });
     } else {
-      io.to(room).emit("chat message", { content, sender });
+      io.to(roomId).emit("chat message", { content, sender });
     }
   });
 
+  // the the details about the connected users 
   socket.on("get-connected-users", async () => {
     try {
       console.log(
@@ -161,24 +162,26 @@ io.on("connection", (socket) => {
   // join room
   socket.on("request-to-join-room", async ({ roomId, targetUser }) => {
     socket.join(roomId);
+    console.log("join room ", roomId, socket.user.username)
     const room = await OnlineUsers.findOne({
       userId: targetUser,
     });
-
+    
     const targetUserSocket = io.sockets.sockets.get(room.socketId);
     // console.log(targetUserSocket, "this is target socket")
     if (targetUserSocket) {
       targetUserSocket.emit("room-joining-notification", {
         roomId,
-        user: socket.user,
+        senderUser: socket.user,
       });
     }
   });
-
+  
   // join room
-  socket.on("join-room", ({ roomId }, callback) => {
+  socket.on("join-room", ({ roomId }) => {
+    console.log("join room ", roomId, socket.user.username)
+
     socket.join(roomId);
-    callback({ success: true });
   });
 
   // socket dissconnect

@@ -31,8 +31,9 @@ function App() {
       socket.current.disconnect();
     });
 
-    socket.current.on("room-joining-notification", (data) => {
-      console.log("you joind this room ", data);
+    socket.current.on("room-joining-notification", ({roomId, senderUser}) => {
+      socket.current.emit("join-room", {roomId});
+      console.log('request sender for joing room', senderUser)
     });
     socket.current.on("userInfo", (adminUser) => {
       console.log("User adminUser:", adminUser);
@@ -61,14 +62,14 @@ function App() {
       setMessages((prev) => [...prev, payload]);
     });
 
-    socket.current.on("join-room", (data) => {
-      console.log(data);
-      socket.current.emit("join-room", { roomId: data.roomId }, (response) => {
-        if (response.success) {
-          console.log("joind the room ");
-        }
-      });
-    });
+    // socket.current.on("join-room", (data) => {
+    //   console.log(data);
+    //   socket.current.emit("join-room", { roomId: data.roomId }, (response) => {
+    //     if (response.success) {
+    //       console.log("joind the room ");
+    //     }
+    //   });
+    // });
 
     socket.current.on("room-created", ({room, createdBy}) => {
       
@@ -117,10 +118,12 @@ function App() {
   // handle the message sending
   const handleSendMessage = () => {
     if (selectedRoom) {
+
       console.log(selectedRoom);
       socket.current.emit("chat message", {
         content: message,
-        room: selectedRoom.roomId,
+        roomId: selectedRoom.roomId,
+        roomDbId: selectedRoom.roomDbId,
         sender: user,
       });
     }
