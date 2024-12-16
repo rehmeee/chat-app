@@ -16,12 +16,6 @@ const roomSchema = new mongoose.Schema({
     members:[
         { type : mongoose.Schema.Types.ObjectId,
             ref: "Users"}
-    ],
-    messages:[
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref:"Messages"
-        },
     ]
 },{timestamps:true});
 export const Room = mongoose.model("Room",roomSchema);

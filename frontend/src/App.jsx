@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
+import { nanoid, random } from "nanoid";
 
 function App() {
   const [message, setMessage] = useState("");
@@ -33,29 +34,23 @@ function App() {
     socket.current.on("room-joining-notification", (data) => {
       console.log("you joind this room ", data);
     });
-    socket.current.on("userInfo", (info) => {
-      console.log("User info:", info);
-      setUser(info);
+    socket.current.on("userInfo", (adminUser) => {
+      console.log("User adminUser:", adminUser);
+      setUser(adminUser);
 
       // Show random suggestions if no rooms
-      if (info.rooms.length === 0) {
-        socket.current.emit("want-suggestions", info._id);
+      if (adminUser.rooms.length === 0) {
+        socket.current.emit("want-suggestions", adminUser._id);
         socket.current.on("suggestions", (data) => {
           console.log("Random Users:", data);
           setRandomUsers(data);
           setLoading(false);
         });
       }
-      if (info.rooms.length > 0) {
+      if (adminUser.rooms.length > 0) {
         console.log("i am in ");
 
-        socket.current.emit("get-room-user", info.rooms);
-
-        socket.current.on("connected-users", (users) => {
-          console.log(users);
-          setConnectedRooms(users);
-        });
-        setLoading(false);
+        socket.current.emit("get-connected-users");
       } else {
         setLoading(false);
       }
@@ -75,6 +70,17 @@ function App() {
       });
     });
 
+    socket.current.on("room-created", ({room, createdBy}) => {
+      
+      socket.current.emit("get-connected-users");
+    });
+
+    socket.current.on("connected-users", (users) => {
+      console.log(users);
+      setConnectedRooms(users);
+      setLoading(false);
+    });
+
     return () => {
       socket.current.disconnect(); // Cleanup on unmount
     };
@@ -89,24 +95,29 @@ function App() {
   };
 
   // handle when user click on the random user from the suggestions
-  const handleRoomClickForRandomUsers = (user) => {
-    console.log(user);
-    socket.current.emit("create-room", user, (response) => {
-      if (response.success) {
-        console.log("room created ");
-      } else {
-        console.log("error while creating the room ");
+  const handleRoomClickForRandomUsers = (randomUser) => {
+    const roomId = nanoid(
+      10,
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+    );
+    console.log("this is room id from nano id ", roomId);
+    socket.current.emit(
+      "create-room",
+      { selectedUser: randomUser, roomId },
+      (response) => {
+        if (response.success) {
+          socket.current.emit("get-connected-users");
+        } else {
+          console.log("error while creating the room ");
+        }
       }
-    });
-    socket.current.on("room-created", (data) => {
-      console.log("ths is the room id that is created ", data.roomId);
-      setSelectedRoom(data);
-    });
+    );
   };
 
   // handle the message sending
   const handleSendMessage = () => {
     if (selectedRoom) {
+      console.log(selectedRoom);
       socket.current.emit("chat message", {
         content: message,
         room: selectedRoom.roomId,
@@ -171,8 +182,10 @@ function App() {
               </h3>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-chatScreenBg p-4 border border-black  rounded-xl mb-4 butterfly  
-            ">
+            <div
+              className="flex-1 overflow-y-auto bg-chatScreenBg p-4 border border-black  rounded-xl mb-4 butterfly overflow-x-hidden  
+            "
+            >
               {messages.map((msg, index) => (
                 <p
                   key={index}

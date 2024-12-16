@@ -1,21 +1,21 @@
 import { Room } from "../models/room.model.js";
 import { User } from "../models/user.model.js";
 
-const createRoom = async (currentUser, targetUser, roomId) => {
+const createRoom = async (selectedUser,currentUserId,  roomId) => {
   try {
+    
     const room = await Room.create({
       id: roomId,
-      createdBy: currentUser,
-      members: [currentUser, targetUser],
+      createdBy:  currentUserId,
+      members: [currentUserId, selectedUser?._id],
     });
     if (!room) {
-      console.log("room is not created ");
       return null;
     } 
-    await User.findByIdAndUpdate(currentUser, {
+    await User.findByIdAndUpdate(currentUserId, {
       $push:{rooms: room?._id}
     });
-    await User.findByIdAndUpdate(targetUser, {
+    await User.findByIdAndUpdate(selectedUser?._id, {
       $push:{ rooms: room?._id}
      
     });
