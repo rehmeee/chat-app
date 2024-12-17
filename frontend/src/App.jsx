@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
-import { nanoid, random } from "nanoid";
+import { nanoid } from "nanoid";
+import Sidebar from "./components/Sidebar";
 
 function App() {
   const [message, setMessage] = useState("");
   const [randomUsers, setRandomUsers] = useState([]);
   const [connectedRooms, setConnectedRooms] = useState([]);
   const [user, setUser] = useState({});
-  const [errormessage, setErrorMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null); // For selected room/user
   const [loading, setLoading] = useState(true);
@@ -27,13 +27,12 @@ function App() {
 
     socket.current.on("connect_error", (error) => {
       console.error("Connection error", error.message);
-      setErrorMessage(error.message);
       socket.current.disconnect();
     });
 
-    socket.current.on("room-joining-notification", ({roomId, senderUser}) => {
-      socket.current.emit("join-room", {roomId});
-      console.log('request sender for joing room', senderUser)
+    socket.current.on("room-joining-notification", ({ roomId, senderUser }) => {
+      socket.current.emit("join-room", { roomId });
+      console.log("request sender for joing room", senderUser);
     });
     socket.current.on("userInfo", (adminUser) => {
       console.log("User adminUser:", adminUser);
@@ -62,17 +61,7 @@ function App() {
       setMessages((prev) => [...prev, payload]);
     });
 
-    // socket.current.on("join-room", (data) => {
-    //   console.log(data);
-    //   socket.current.emit("join-room", { roomId: data.roomId }, (response) => {
-    //     if (response.success) {
-    //       console.log("joind the room ");
-    //     }
-    //   });
-    // });
-
-    socket.current.on("room-created", ({room, createdBy}) => {
-      
+    socket.current.on("room-created", ({ room, createdBy }) => {
       socket.current.emit("get-connected-users");
     });
 
@@ -88,9 +77,9 @@ function App() {
   }, [accessToken]);
 
   const handleRoomClick = (room) => {
-    console.log(room)
+    console.log(room);
     // room.chat.map(chat=>())
-      setMessages(room.chat)
+    setMessages(room.chat);
     socket.current.emit("request-to-join-room", {
       roomId: room.roomId,
       targetUser: room._id,
@@ -121,7 +110,6 @@ function App() {
   // handle the message sending
   const handleSendMessage = () => {
     if (selectedRoom) {
-
       console.log(selectedRoom);
       socket.current.emit("chat message", {
         content: message,
@@ -172,6 +160,16 @@ function App() {
           )}
         </ul>
       </div>
+      {/* {for later use} */}
+      {/* <Sidebar
+        user={user}
+        loading={loading}
+        connectedRooms={connectedRooms}
+        selectedRoom={selectedRoom}
+        randomUsers={randomUsers}
+        handleRoomClickForRandomUsers={handleRoomClickForRandomUsers}
+        handleRoomClick={handleRoomClick}
+      /> */}
 
       {/* Chat Area */}
       <div className="flex flex-col flex-1 p-4 bg-chatBg">
