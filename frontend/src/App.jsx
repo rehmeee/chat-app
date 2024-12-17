@@ -88,6 +88,9 @@ function App() {
   }, [accessToken]);
 
   const handleRoomClick = (room) => {
+    console.log(room)
+    // room.chat.map(chat=>())
+      setMessages(room.chat)
     socket.current.emit("request-to-join-room", {
       roomId: room.roomId,
       targetUser: room._id,
@@ -193,12 +196,12 @@ function App() {
                 <p
                   key={index}
                   className={`mb-2 text-textColor overflow-hidden${
-                    user.fullName === msg.sender.fullName
+                    user.username === msg.sender.username
                       ? " text-right"
                       : " text-left"
                   }`}
                 >
-                  {user.fullName === msg.sender.fullName ? (
+                  {user.username === msg.sender.username ? (
                     <p className="inline-block p-1 rounded-s-xl rounded-t-xl bg-mesgBg px-3">
                       {" "}
                       <span className="">{msg.content}</span>
