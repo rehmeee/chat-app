@@ -1,17 +1,20 @@
-import express, { response, urlencoded } from "express";
+import express, { urlencoded } from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
 import { dbConnection } from "./db/dbConnection.js";
 import { socketAuth } from "./middleware/socket.middleware.js";
+
+import socketFileUpload from "socketio-file-upload"
+
 dotenv.config();
 
 // exprss middlewares
 const app = express();
 const server = http.createServer(app);
 app.use(
-  express.urlencoded({
+  urlencoded({
     extended: true,
   })
 );
@@ -26,7 +29,7 @@ app.use(
   })
 );
 
-const users = {};
+app.use(socketFileUpload.router)
 
 // app.use()
 const io = new Server(server, {
@@ -59,6 +62,7 @@ io.on("connection", (socket) => {
       socket.emit("error", { message: "error while adding user online" });
     }
   })();
+
   // remove the user from online users when he dissconnects
   socket.on("disconnect", () => {
     (async () => {
@@ -69,6 +73,12 @@ io.on("connection", (socket) => {
       console.log(" socket is dissconnect", socket.id);
     })();
   });
+
+
+  // listen for the files that comes with the request
+  const uploader = new socketFileUpload();
+  uploader.dir = "uploads"
+  uploader.listen(socket);
 
   // send the user info back
   socket.emit("userInfo", socket.user);

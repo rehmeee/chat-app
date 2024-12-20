@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { nanoid } from "nanoid";
 import Sidebar from "./components/Sidebar";
+import socketFileUpload from "socketio-file-upload";
+import UserBar from "./components/UserBar";
 
 function App() {
   const [message, setMessage] = useState("");
@@ -12,7 +14,10 @@ function App() {
   const [selectedRoom, setSelectedRoom] = useState(null); // For selected room/user
   const [loading, setLoading] = useState(true);
   const accessToken = sessionStorage.getItem("accessToken");
+
+  // refrences
   const socket = useRef(null);
+  const uploaderRef = useRef(null);
   useEffect(() => {
     socket.current = io("http://localhost:5000", {
       reconnection: true,
@@ -21,6 +26,8 @@ function App() {
       },
     });
 
+    const uploader = new socketFileUpload(socket.current);
+    uploaderRef.current = uploader;
     socket.current.on("error", (data) => {
       console.log(data.message);
     });
@@ -121,43 +128,21 @@ function App() {
     setMessage("");
   };
 
+  const handleEditUserInfo = ()=>{
+    
+  }
   return (
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
       <div className="w-1/4 bg-gray-500 p-4 border-r">
-        <h2 className="text-lg font-bold mb-4">
-          {user.username || "Loading..."}
-        </h2>
+        <UserBar user={user} onEditInfo = {handleEditUserInfo} />
+        <p>Friends</p>
         <ul className="space-y-2">
-          {loading ? (
-            <p>Loading...</p>
-          ) : connectedRooms.length > 0 ? (
-            connectedRooms.map((room, index) => (
-              <li
-                key={index}
-                className={`p-2 cursor-pointer rounded ${
-                  selectedRoom === room ? "bg-gray-300" : "hover:bg-gray-200"
-                }`}
-                onClick={() => handleRoomClick(room)}
-              >
-                {room.fullName}
-              </li>
-            ))
-          ) : (
-            randomUsers.map((randomUser, index) => (
-              <li
-                key={index}
-                className={`p-2 cursor-pointer rounded ${
-                  selectedRoom === randomUser
-                    ? "bg-gray-300"
-                    : "hover:bg-gray-200"
-                }`}
-                onClick={() => handleRoomClickForRandomUsers(randomUser)}
-              >
-                {randomUser.fullName}
-              </li>
-            ))
-          )}
+          {loading ? (<p>Loading!!</p>) : 
+          <Sidebar connectedRooms={connectedRooms} selectedRoom={selectedRoom} randomUsers={randomUsers} handleRoomClickForRandomUsers={handleRoomClickForRandomUsers} handleRoomClick={handleRoomClick} /> 
+          }
+
+         
         </ul>
       </div>
       {/* {for later use} */}
