@@ -12,7 +12,7 @@ function UserBar({ user,onEditInfo }) {
     }
   return (
     <div className="flex place-items-center mb-5 gap-1 rounded-xl bg-chatBg relative">
-      <img src={""} alt="" className="w-10 h-10 rounded-full bg-black" />
+      <img src={user.profilePic} alt="User image" className="w-10 h-10 rounded-full bg-black" />
       <div className="  w-full rounded-xl  px-2">
         <h2 className=" font-bold">
           {user.username || "Loading..."}

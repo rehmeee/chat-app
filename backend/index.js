@@ -5,12 +5,24 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { dbConnection } from "./db/dbConnection.js";
 import { socketAuth } from "./middleware/socket.middleware.js";
-
+    
+// routing
+import userRouter from "./routes/user.routes.js";
+import cookieParser from "cookie-parser";
+import { getRandomUsers } from "./utils/randomUsers.js";
+import { createRoom } from "./utils/roomCreation.js";
+import { Room } from "./models/room.model.js";
+import { User } from "./models/user.model.js";
+import { getConnectedUser } from "./utils/getUsersOfConnectedRooms.js";
+import { OnlineUsers } from "./models/onlineUser.model.js";
+import { addUserOnline, removeUserOnline } from "./utils/addingUserOnline.js";
+import { saveMessage } from "./utils/handleMessaging.js";
 import socketFileUpload from "socketio-file-upload"
-
+import { uploadToCloudinary } from "./utils/cloudinary.js";
+ 
 dotenv.config();
 
-// exprss middlewares
+// exprss middlewares   
 const app = express();
 const server = http.createServer(app);
 app.use(
@@ -38,6 +50,7 @@ const io = new Server(server, {
     allowedHeaders: true,
     Credential: true,
   },
+  maxHttpBufferSize: 1e8
 });
 dbConnection().then(() => {
   app.get("/", (req, res) => {
@@ -55,6 +68,22 @@ io.use(socketAuth); // autentication for authurization
 
 // when connection is established
 io.on("connection", (socket) => {
+
+  // listen for the files that comes with the request
+  const uploader = new socketFileUpload();
+  uploader.dir = "uploads"
+  uploader.listen(socket);
+  uploader.on("start", async(event)=>{
+    
+    
+  });
+  uploader.on("saved", async(event)=>{
+    console.log("i am in save ")
+    const response = await uploadToCloudinary(event.file.name,socket.user?._id);
+    console.log(response)
+  });
+   
+
   // add the user to online users
   (async () => {
     const response = await addUserOnline(socket).then();
@@ -75,10 +104,6 @@ io.on("connection", (socket) => {
   });
 
 
-  // listen for the files that comes with the request
-  const uploader = new socketFileUpload();
-  uploader.dir = "uploads"
-  uploader.listen(socket);
 
   // send the user info back
   socket.emit("userInfo", socket.user);
@@ -202,16 +227,5 @@ io.on("connection", (socket) => {
   });
 });
 
-// routing
-import userRouter from "./routes/user.routes.js";
-import cookieParser from "cookie-parser";
-import { getRandomUsers } from "./utils/randomUsers.js";
-import { createRoom } from "./utils/roomCreation.js";
-import { Room } from "./models/room.model.js";
-import { User } from "./models/user.model.js";
-import { getConnectedUser } from "./utils/getUsersOfConnectedRooms.js";
-import { OnlineUsers } from "./models/onlineUser.model.js";
-import { addUserOnline, removeUserOnline } from "./utils/addingUserOnline.js";
-import { saveMessage } from "./utils/handleMessaging.js";
 
 app.use("/user", userRouter);

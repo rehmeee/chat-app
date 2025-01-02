@@ -128,15 +128,18 @@ function App() {
     setMessage("");
   };
 
-  const handleEditUserInfo = ()=>{
-    
+  const handleEditUserInfo = (formData)=>{
+    console.log(formData)
+    uploaderRef.current.submitFiles([formData.profilePic]);
+    //uploaderRef.current.submitFiles(formData.profilePicture)
+    //console.log("i am in handle edit info")
   }
   return (
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
       <div className="w-1/4 bg-gray-500 p-4 border-r">
         <UserBar user={user} onEditInfo = {handleEditUserInfo} />
-        <p>Friends</p>
+        <p>{connectedRooms.length>0 ? "friends": "suggestions"}</p>
         <ul className="space-y-2">
           {loading ? (<p>Loading!!</p>) : 
           <Sidebar connectedRooms={connectedRooms} selectedRoom={selectedRoom} randomUsers={randomUsers} handleRoomClickForRandomUsers={handleRoomClickForRandomUsers} handleRoomClick={handleRoomClick} /> 
@@ -145,16 +148,7 @@ function App() {
          
         </ul>
       </div>
-      {/* {for later use} */}
-      {/* <Sidebar
-        user={user}
-        loading={loading}
-        connectedRooms={connectedRooms}
-        selectedRoom={selectedRoom}
-        randomUsers={randomUsers}
-        handleRoomClickForRandomUsers={handleRoomClickForRandomUsers}
-        handleRoomClick={handleRoomClick}
-      /> */}
+     
 
       {/* Chat Area */}
       <div className="flex flex-col flex-1 p-4 bg-chatBg">
@@ -162,7 +156,7 @@ function App() {
           <>
             <div className=" flex flex-row my-2 p-2 rounded-xl place-items-center bg-chatScreenBg ">
               <img
-                src={""}
+                src={selectedRoom.profilePic}
                 alt=""
                 className="h-10 rounded-full w-10 bg-white"
               />

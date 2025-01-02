@@ -19,7 +19,7 @@ function Sidebar({
             > 
               <div className="flex place-items-center mb-5 gap-1 rounded-xl bg-chatBg">
                 <img
-                  src={""}
+                  src={room.profilePic}
                   alt=""
                   className="w-10 h-10 rounded-full bg-black"
                 />
@@ -44,7 +44,7 @@ function Sidebar({
             >
               <div className="flex place-items-center mb-5 gap-1 rounded-xl bg-chatBg">
                 <img
-                  src={""}
+                  src={randomUser.profilePic}
                   alt=""
                   className="w-10 h-10 rounded-full bg-black"
                 />
