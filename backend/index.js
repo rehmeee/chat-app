@@ -19,6 +19,7 @@ import { addUserOnline, removeUserOnline } from "./utils/addingUserOnline.js";
 import { saveMessage } from "./utils/handleMessaging.js";
 import socketFileUpload from "socketio-file-upload"
 import { uploadToCloudinary } from "./utils/cloudinary.js";
+import { updateUserInfo } from "./utils/updateUserInfo.js";
  
 dotenv.config();
 
@@ -103,7 +104,12 @@ io.on("connection", (socket) => {
     })();
   });
 
+  // update the user info 
 
+  socket.on("updateInfo", async(data)=>{
+  const response = await  updateUserInfo(data,socket.user?._id)
+    console.log(response)
+  })
 
   // send the user info back
   socket.emit("userInfo", socket.user);

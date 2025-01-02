@@ -16,10 +16,10 @@ function UserBar({ user,onEditInfo }) {
       <div className="  w-full rounded-xl  px-2">
         <h2 className=" font-bold">
           {user.username || "Loading..."}
-          <h3 className="font-normal text-sm">descripteion</h3>
+          
         </h2>
       </div>
-      <button className="absolute top-2 right-2 bg-inherit text-black p-1 rounded" onClick={handleEdit}>Edit</button>
+      <button className="absolute top-1 right-2 bg-inherit text-black p-1 rounded" onClick={handleEdit}>Edit</button>
       {isEdit && <EditModel user={user} onclose={handleEditOnClose} onEditInfo={onEditInfo}/>}
     </div>
   );

@@ -4,6 +4,7 @@ import { useState } from "react";
 function EditModel({ user, onclose, onEditInfo }) {
   const [formData, setFormData] = useState({
     username: user.username || "",
+    description: user.description || "",
     profilePic: null, // Store the File object here
     fullName: user.fullName || "",
   });
@@ -45,6 +46,16 @@ function EditModel({ user, onclose, onEditInfo }) {
             type="text"
             name="fullName"
             value={formData.fullName}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <input
+            type="text"
+            name="description"
+            value={formData.description}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />

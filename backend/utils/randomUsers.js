@@ -21,6 +21,7 @@ const getRandomUsers = async (userid) => {
           username: 1,
           fullName: 1,
           profilePic: 1,
+          description: 1
         },
       },
     ]);

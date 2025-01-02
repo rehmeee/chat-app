@@ -26,7 +26,7 @@ function Sidebar({
                 <div className="  w-full rounded-xl  px-2">
                   <h2 className=" font-bold">
                     {room.fullName || "Loading..."}
-                    <h3 className="font-normal text-sm">descripteion</h3>
+                   
                   </h2>
                 </div>
               </div>
@@ -51,7 +51,7 @@ function Sidebar({
                 <div className="  w-full rounded-xl  px-2">
                   <h2 className=" font-bold">
                     {randomUser.fullName || "Loading..."}
-                    <h3 className="font-normal text-sm">descripteion</h3>
+                    
                   </h2>
                 </div>
               </div>

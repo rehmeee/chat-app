@@ -128,27 +128,34 @@ function App() {
     setMessage("");
   };
 
-  const handleEditUserInfo = (formData)=>{
-    console.log(formData)
+  const handleEditUserInfo = (formData) => {
     uploaderRef.current.submitFiles([formData.profilePic]);
-    //uploaderRef.current.submitFiles(formData.profilePicture)
-    //console.log("i am in handle edit info")
-  }
+    socket.current.emit("updateInfo", {
+      username: formData.username,
+      fullName: formData.fullName,
+      description: formData.description
+    });
+  };
   return (
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
       <div className="w-1/4 bg-gray-500 p-4 border-r">
-        <UserBar user={user} onEditInfo = {handleEditUserInfo} />
-        <p>{connectedRooms.length>0 ? "friends": "suggestions"}</p>
+        <UserBar user={user} onEditInfo={handleEditUserInfo} />
+        <p>{connectedRooms.length > 0 ? "friends" : "suggestions"}</p>
         <ul className="space-y-2">
-          {loading ? (<p>Loading!!</p>) : 
-          <Sidebar connectedRooms={connectedRooms} selectedRoom={selectedRoom} randomUsers={randomUsers} handleRoomClickForRandomUsers={handleRoomClickForRandomUsers} handleRoomClick={handleRoomClick} /> 
-          }
-
-         
+          {loading ? (
+            <p>Loading!!</p>
+          ) : (
+            <Sidebar
+              connectedRooms={connectedRooms}
+              selectedRoom={selectedRoom}
+              randomUsers={randomUsers}
+              handleRoomClickForRandomUsers={handleRoomClickForRandomUsers}
+              handleRoomClick={handleRoomClick}
+            />
+          )}
         </ul>
       </div>
-     
 
       {/* Chat Area */}
       <div className="flex flex-col flex-1 p-4 bg-chatBg">
@@ -160,9 +167,13 @@ function App() {
                 alt=""
                 className="h-10 rounded-full w-10 bg-white"
               />
-              <h3 className="text-xl text-userNameTextColor font-bold ml-2 ">
+              <div className=" ml-2 w-full rounded-xl  px-2">
+              <h3 className="text-xl text-userNameTextColor font-bold  ">
                 {selectedRoom.fullName}
               </h3>
+              <h4>{selectedRoom.description}</h4>
+
+              </div>
             </div>
 
             <div
