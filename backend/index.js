@@ -185,44 +185,46 @@ io.on("connection", (socket) => {
   // the the details about the connected users 
   socket.on("get-connected-users", async () => {
     try {
-      console.log(
-        " i am in geting user for connected users for  ",
-        socket.user.username
-      );
+      // console.log(
+      //   " i am in geting user for connected users for  ",
+      //   socket.user.username
+      // );
       //console.log(rooms)
       const users = await getConnectedUser(socket).then();
 
-      //console.log(users);
+      //console.log(users); 
 
       socket.emit("connected-users", users);
-    } catch (error) {
+    } catch (error) {      
       socket.emit("error", { message: error.message });
     }
-  });
-
+  });   
+ 
   // join room
-  socket.on("request-to-join-room", async ({ roomId, targetUser }) => {
-    socket.join(roomId);
-    console.log("join room ", roomId, socket.user.username)
-    const room = await OnlineUsers.findOne({
-      userId: targetUser,
-    });
-    
-    const targetUserSocket = io.sockets.sockets.get(room.socketId);
-    // console.log(targetUserSocket, "this is target socket")
-    if (targetUserSocket) {
-      targetUserSocket.emit("room-joining-notification", {
-        roomId,
-        senderUser: socket.user,
-      });
-    }
-  });
+  // socket.on("request-to-join-room", async ({ roomId, targetUser }) => {
+  //   socket.join(roomId);
+  //   console.log("join room ", roomId, socket.user.username)
+  //   const room = await OnlineUsers.findOne({ 
+  //     userId: targetUser,
+  //   });
+  //   if(room){   
+
+  //     const targetUserSocket = io.sockets.sockets.get(room.socketId);
+  //     if (targetUserSocket) {
+  //       targetUserSocket.emit("room-joining-notification", {
+  //         roomId,
+  //         senderUser: socket.user,
+  //       });
+  //   }
+  //   // console.log(targetUserSocket, "this is target socket")
+  //   }
+  // });
   
   // join room
-  socket.on("join-room", ({ roomId }) => {
-    console.log("join room ", roomId, socket.user.username)
-
-    socket.join(roomId);
+  socket.on("join-room", (selectedRoom) => {
+    //console.log("join room ", roomId, socket.user.username)
+    socket.join(selectedRoom)
+   
   });
 
   // socket dissconnect

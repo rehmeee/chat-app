@@ -84,14 +84,15 @@ function App() {
   }, [accessToken]);
 
   const handleRoomClick = (room) => {
-    console.log(room);
-    // room.chat.map(chat=>())
-    setMessages(room.chat);
-    socket.current.emit("request-to-join-room", {
-      roomId: room.roomId,
-      targetUser: room._id,
-    });
+    console.log(room, "this is room ");
     setSelectedRoom(room);
+    // room.chat.map(chat=>())
+      setMessages(room.chat);
+      // socket.current.emit("request-to-join-room", {
+        //   roomId: room.roomId,
+        //   targetUser: room._id,
+        // });
+        socket.current.emit("join-room",room.roomId )
   };
 
   // handle when user click on the random user from the suggestions
@@ -138,24 +139,26 @@ function App() {
   };
   return (
     <div className="flex h-screen font-sans">
-      {/* Sidebar */}
-      <div className="w-1/4 bg-gray-500 p-4 border-r">
-        <UserBar user={user} onEditInfo={handleEditUserInfo} />
-        <p>{connectedRooms.length > 0 ? "friends" : "suggestions"}</p>
-        <ul className="space-y-2">
-          {loading ? (
-            <p>Loading!!</p>
-          ) : (
-            <Sidebar
-              connectedRooms={connectedRooms}
-              selectedRoom={selectedRoom}
-              randomUsers={randomUsers}
-              handleRoomClickForRandomUsers={handleRoomClickForRandomUsers}
-              handleRoomClick={handleRoomClick}
-            />
-          )}
-        </ul>
-      </div>
+    {/* Sidebar */}
+    <div className="relative w-1/4 p-4 border-r bg-gray-100 backdrop-blur-lg">
+      <UserBar user={user} onEditInfo={handleEditUserInfo} />
+      <p className="text-black text-2xl font-bold">{connectedRooms.length > 0 ? "Friends:" : "suggestions:"}</p>
+      <ul className="space-y-2 bg-chatScreenBg bg-opacity-20 rounded-xl">
+        {loading ? (
+          <p>Loading!!</p>
+        ) : (
+          <Sidebar
+            connectedRooms={connectedRooms}
+            selectedRoom={selectedRoom}
+            randomUsers={randomUsers}
+            handleRoomClickForRandomUsers={handleRoomClickForRandomUsers}
+            handleRoomClick={handleRoomClick}
+          />
+        )}
+      </ul>
+    </div>
+ 
+  
 
       {/* Chat Area */}
       <div className="flex flex-col flex-1 p-4 bg-chatBg">
@@ -223,7 +226,7 @@ function App() {
             </div>
           </>
         ) : (
-          <p className="text-gray-500">
+          <p className=" text-black ">
             Select a room or user to start chatting.
           </p>
         )}

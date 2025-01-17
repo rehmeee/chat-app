@@ -16,8 +16,8 @@ const getConnectedUser = async ( socket) => {
 };
 
 async function getUser(id, socket) {
-  try {
-    console.log( " i am in get user", id)
+  try {  
+    //console.log( " i am in get user", id)
     const room = await Room.findById(id).populate({
       path: "chat", 
       populate:{ 
@@ -25,7 +25,7 @@ async function getUser(id, socket) {
         select: "username fullName"
       }
     });
-    console.log("this is the room ", room)
+    //console.log("this is the room ", room)
     const user = room.members.filter(
       (id) => id.toString() != socket.user._id.toString()
     );

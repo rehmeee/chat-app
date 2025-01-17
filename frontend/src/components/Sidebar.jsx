@@ -12,23 +12,23 @@ function Sidebar({
         ? connectedRooms.map((room, index) => (
             <li
               key={index}
-              className={` cursor-pointer rounded ${
-                selectedRoom === room ? "bg-gray-300" : "hover:bg-gray-200"
+              className={` cursor-pointer rounded p-3 ${
+                selectedRoom === room ? "bg-gray-500" : "hover:bg-gray-600"
               }`}
               onClick={() => handleRoomClick(room)}
             > 
-              <div className="flex place-items-center mb-5 gap-1 rounded-xl bg-chatBg">
+              <div className="flex place-items-center p-3 gap-1 rounded-xl bg-chatBg">
                 <img
                   src={room.profilePic}
                   alt=""
                   className="w-10 h-10 rounded-full bg-black"
                 />
-                <div className="  w-full rounded-xl  px-2">
-                  <h2 className=" font-bold">
+                
+                  <h2 className=" font-bold text-black">
                     {room.fullName || "Loading..."}
                    
                   </h2>
-                </div>
+                
               </div>
             </li>
           ))
