@@ -68,7 +68,7 @@ function App() {
       setMessages((prev) => [...prev, payload]);
     });
 
-    socket.current.on("room-created", ({ room, createdBy }) => {
+    socket.current.on("room-created", () => {
       socket.current.emit("get-connected-users");
     });
 
@@ -138,100 +138,103 @@ function App() {
     });
   };
   return (
-    <div className="flex h-screen font-sans">
-    {/* Sidebar */}
-    <div className="relative w-1/4 p-4 border-r bg-gray-100 backdrop-blur-lg">
+    <div className="flex h-screen font-sans bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+  {/* Sidebar */}
+  <div className="relative w-1/4 p-4 bg-white/80 backdrop-blur-md shadow-lg">
+    <div className="mb-8">
       <UserBar user={user} onEditInfo={handleEditUserInfo} />
-      <p className="text-black text-2xl font-bold">{connectedRooms.length > 0 ? "Friends:" : "suggestions:"}</p>
-      <ul className="space-y-2 bg-chatScreenBg bg-opacity-20 rounded-xl">
-        {loading ? (
-          <p>Loading!!</p>
-        ) : (
-          <Sidebar
-            connectedRooms={connectedRooms}
-            selectedRoom={selectedRoom}
-            randomUsers={randomUsers}
-            handleRoomClickForRandomUsers={handleRoomClickForRandomUsers}
-            handleRoomClick={handleRoomClick}
+    </div>
+    <p className="text-xl font-semibold text-gray-800 mb-4">
+      {connectedRooms.length > 0 ? "Friends:" : "Suggestions:"}
+    </p>
+    <ul className="space-y-3">
+      {loading ? (
+        <p className="text-gray-500 text-center">Loading...</p>
+      ) : (
+        <Sidebar
+          connectedRooms={connectedRooms}
+          selectedRoom={selectedRoom}
+          randomUsers={randomUsers}
+          handleRoomClickForRandomUsers={handleRoomClickForRandomUsers}
+          handleRoomClick={handleRoomClick}
+        />
+      )}
+    </ul>
+  </div>
+
+  {/* Chat Area */}
+  <div className="flex flex-col flex-1 p-6 bg-gray-50">
+    {selectedRoom ? (
+      <>
+        {/* Chat Header */}
+        <div className="flex items-center mb-4 p-4 bg-white rounded-lg shadow">
+          <img
+            src={selectedRoom.profilePic}
+            alt="Room Profile"
+            className="h-12 w-12 rounded-full border-2 border-indigo-400"
           />
-        )}
-      </ul>
-    </div>
- 
-  
+          <div className="ml-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              {selectedRoom.fullName}
+            </h3>
+            <p className="text-sm text-gray-600">{selectedRoom.description}</p>
+          </div>
+        </div>
 
-      {/* Chat Area */}
-      <div className="flex flex-col flex-1 p-4 bg-chatBg">
-        {selectedRoom ? (
-          <>
-            <div className=" flex flex-row my-2 p-2 rounded-xl place-items-center bg-chatScreenBg ">
-              <img
-                src={selectedRoom.profilePic}
-                alt=""
-                className="h-10 rounded-full w-10 bg-white"
-              />
-              <div className=" ml-2 w-full rounded-xl  px-2">
-              <h3 className="text-xl text-userNameTextColor font-bold  ">
-                {selectedRoom.fullName}
-              </h3>
-              <h4>{selectedRoom.description}</h4>
-
-              </div>
-            </div>
-
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto bg-white p-6 rounded-lg shadow-lg">
+          {messages.map((msg, index) => (
             <div
-              className="flex-1 overflow-y-auto bg-chatScreenBg p-4 border border-black  rounded-xl mb-4 butterfly overflow-x-hidden  
-            "
+              key={index}
+              className={`mb-4 max-w-lg ${
+                user.username === msg.sender.username
+                  ? "ml-auto text-right"
+                  : "mr-auto text-left"
+              }`}
             >
-              {messages.map((msg, index) => (
-                <p
-                  key={index}
-                  className={`mb-2 text-textColor overflow-hidden${
-                    user.username === msg.sender.username
-                      ? " text-right"
-                      : " text-left"
-                  }`}
-                >
-                  {user.username === msg.sender.username ? (
-                    <p className="inline-block p-1 rounded-s-xl rounded-t-xl bg-mesgBg px-3">
-                      {" "}
-                      <span className="">{msg.content}</span>
-                    </p>
-                  ) : (
-                    <p className="inline-block p-1 rounded-e-xl rounded-b-xl bg-mesgBg pr-3 pl-0 overflow-hidden">
-                      {" "}
-                      <span className="bg-namebg p-2">
-                        {msg.sender.fullName.split(" ").shift(0)}
-                      </span>
-                      <span className="bg-spanbg ml-2">{msg.content}</span>
-                    </p>
-                  )}
-                </p>
-              ))}
-            </div>
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="flex-1 px-4 py-2 border rounded"
-              />
-              <button
-                onClick={handleSendMessage}
-                className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              <p
+                className={`inline-block px-4 py-2 rounded-lg shadow ${
+                  user.username === msg.sender.username
+                    ? "bg-indigo-500 text-white"
+                    : "bg-gray-100 text-gray-800"
+                }`}
               >
-                Send
-              </button>
+                {user.username !== msg.sender.username && (
+                  <span className="block font-semibold text-sm text-indigo-600">
+                    {msg.sender.fullName.split(" ")[0]}
+                  </span>
+                )}
+                {msg.content}
+              </p>
             </div>
-          </>
-        ) : (
-          <p className=" text-black ">
-            Select a room or user to start chatting.
-          </p>
-        )}
-      </div>
-    </div>
+          ))}
+        </div>
+
+        {/* Message Input */}
+        <div className="flex items-center mt-4">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button
+            onClick={handleSendMessage}
+            className="ml-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Send
+          </button>
+        </div>
+      </>
+    ) : (
+      <p className="text-lg text-gray-700 text-center">
+        Select a room or user to start chatting.
+      </p>
+    )}
+  </div>
+</div>
+
   );
 }
 

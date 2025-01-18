@@ -11,17 +11,32 @@ function UserBar({ user,onEditInfo }) {
         setIsEdit(false)
     }
   return (
-    <div className="flex place-items-center mb-5 p-3 gap-1 rounded-xl bg-chatBg relative">
-      <img src={user.profilePic} alt="User image" className="w-10 h-10 rounded-full bg-black" />
-      <div className="  w-full rounded-xl  px-2">
-        <h2 className=" font-bold text-black">
-          {user.fullName || "Loading..."}
-          
-        </h2>
-      </div>
-      <button className="absolute top-4 right-2 bg-inherit text-black p-1 rounded border-black" onClick={handleEdit}>Edit</button>
-      {isEdit && <EditModel user={user} onclose={handleEditOnClose} onEditInfo={onEditInfo}/>}
-    </div>
+    <div className="flex items-center mb-6 p-4 gap-3 rounded-lg bg-white shadow-md relative">
+  <img
+    src={user.profilePic}
+    alt="User image"
+    className="w-12 h-12 rounded-full border-2 border-indigo-500"
+  />
+  <div className="flex-1">
+    <h2 className="font-semibold text-gray-800 text-lg">
+      {user.fullName || "Loading..."}
+    </h2>
+  </div>
+  <button
+    onClick={handleEdit}
+    className="absolute top-6 right-3 px-4 py-1 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition"
+  >
+    Edit
+  </button>
+  {isEdit && (
+    <EditModel
+      user={user}
+      onclose={handleEditOnClose}
+      onEditInfo={onEditInfo}
+    />
+  )}
+</div>
+
   );
 }
 
